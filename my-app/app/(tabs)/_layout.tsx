@@ -19,7 +19,7 @@ export default function TabsLayout() {
             <View>
               <Image
                 source={require('../../assets/evkIcon.jpg')} // Use PNG format
-                style={{ width: iconSize, height: iconSize }}
+                style={{ width: 18, height: iconSize }}
               />
             </View>
           ),
@@ -45,7 +45,7 @@ export default function TabsLayout() {
             <View>
               <Image
                 source={require('../../assets/parksideIcon.jpg')} // Use PNG format
-                style={{ width: iconSize, height: iconSize }}
+                style={{ width: 19, height: iconSize }}
               />
             </View>
           ),
