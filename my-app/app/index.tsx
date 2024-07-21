@@ -1,45 +1,62 @@
 import React from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function IndexScreen() {
+const IndexScreen: React.FC = () => {
   const router = useRouter();
+  const { height } = Dimensions.get('window');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select Dining Hall</Text>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => router.push('/(tabs)/evk')}>
-        <Text style={styles.iconText}>EVK</Text>
+      <TouchableOpacity 
+        style={[styles.section, { height: height / 3 }]} 
+        onPress={() => router.push('/(tabs)/evk')}
+      >
+        <Image 
+          source={require('../assets/evk1.jpg')} 
+          style={styles.image} 
+          resizeMode="cover" 
+        />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => router.push('/(tabs)/village')}>
-        <Text style={styles.iconText}>Village</Text>
+      <TouchableOpacity 
+        style={[styles.section, { height: height / 3 }]} 
+        onPress={() => router.push('/(tabs)/village')}
+      >
+        <Image 
+          source={require('../assets/village.jpg')} 
+          style={styles.image} 
+          resizeMode="cover" 
+        />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => router.push('/(tabs)/parkside')}>
-        <Text style={styles.iconText}>Parkside</Text>
+      <TouchableOpacity 
+        style={[styles.section, { height: height / 3 }]} 
+        onPress={() => router.push('/(tabs)/parkside')}
+      >
+        <Image 
+          source={require('../assets/parkside1.jpg')} 
+          style={styles.image} 
+          resizeMode="cover" 
+        />
       </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
+  },
+  section: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 32,
-  },
-  iconContainer: {
-    margin: 16,
-    padding: 20,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 10,
-  },
-  iconText: {
-    fontSize: 18,
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });
+
+export default IndexScreen;

@@ -66,7 +66,7 @@ def save_to_firestore(data):
 
 if __name__ == "__main__":
     # Initialize Firestore DB connection once
-    cred = credentials.Certificate("./secrets/uscdining-3f162-8f7eb34df03b.json")
+    cred = credentials.Certificate("./secrets/uscdining-3f162-6cbe1b3d6a1a.json")
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     logger.info("Firestore DB initialized.")
