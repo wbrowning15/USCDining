@@ -147,7 +147,6 @@ const EVKScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#f5f5f5',
     marginTop: 50,
   },

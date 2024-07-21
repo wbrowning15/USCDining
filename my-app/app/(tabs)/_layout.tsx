@@ -1,9 +1,10 @@
 // (tabs)/_layout.tsx
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
+import { Image, View } from 'react-native';
 
 export default function TabsLayout() {
+  const iconSize = 24; // Define your icon size
 
   return (
     <Tabs
@@ -15,7 +16,12 @@ export default function TabsLayout() {
         name="evk"
         options={{
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="map" color={color} size={size} />
+            <View>
+              <Image
+                source={require('../../assets/evkIcon.jpg')} // Use PNG format
+                style={{ width: iconSize, height: iconSize }}
+              />
+            </View>
           ),
         }}
       />
@@ -23,7 +29,12 @@ export default function TabsLayout() {
         name="village"
         options={{
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="star" color={color} size={size} />
+            <View>
+              <Image
+                source={require('../../assets/villageIcon.webp')} // Use PNG format
+                style={{ width: iconSize, height: iconSize }}
+              />
+            </View>
           ),
         }}
       />
@@ -31,7 +42,12 @@ export default function TabsLayout() {
         name="parkside"
         options={{
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="retweet" color={color} size={size} />
+            <View>
+              <Image
+                source={require('../../assets/parksideIcon.jpg')} // Use PNG format
+                style={{ width: iconSize, height: iconSize }}
+              />
+            </View>
           ),
         }}
       />
