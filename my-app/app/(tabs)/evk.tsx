@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { doc, getDoc } from 'firebase/firestore';
-import { useNavigation } from '@react-navigation/native';
-// import Icon from 'react-native-vector-icons/ionicons';
-import { firestore } from '../firebaseConfig'; // Adjust the path as needed
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { auth, firestore } from '../firebaseConfig'; // Adjust the path as needed
 
 interface FoodItem {
   food: string;
   allergen_data: string[];
+  starred?: boolean; // Optional property to indicate if the food is starred
 }
 
 interface Category {
@@ -29,6 +29,10 @@ interface MealMenu {
 interface MenuData {
   date: string;
   meals: MealMenu;
+}
+
+interface UserFavorites {
+  favorites: string[];
 }
 
 type Allergen = 
@@ -55,17 +59,39 @@ const allergenColors: { [key in Allergen]: string } = {
 const EVKScreen: React.FC = () => {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const navigation = useNavigation();
+  if (!auth.currentUser) {
+    return (
+        <Text>Authentication went wrong</Text>
+    );
+  }
+  const user = auth.currentUser;
 
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
         const today = new Date().toLocaleDateString('en-CA'); // Get current date in YYYY-MM-DD format based on local time
-        console.log(today); // Print the correct local date
         const menuDocRef = doc(firestore, 'menus', today);
         const docSnap = await getDoc(menuDocRef);
         if (docSnap.exists()) {
-          setMenuData(docSnap.data() as MenuData);
+          const data = docSnap.data() as MenuData;
+          // Fetch user favorites
+            const userDocRef = doc(firestore, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            const userData = userDocSnap.exists() ? userDocSnap.data() as UserFavorites : { favorites: [] };
+
+            // Mark items as starred if they are in user favorites
+            Object.values(data.meals).forEach((meal) => {
+              Object.values(meal).forEach((hall) => {
+                (hall as Category[]).forEach((category) => {
+                  category.foods.forEach((food) => {
+                    food.starred = userData.favorites.includes(food.food);
+                  });
+                });
+              });
+            });
+          
+
+          setMenuData(data);
         } else {
           console.log('No such document!');
         }
@@ -78,6 +104,27 @@ const EVKScreen: React.FC = () => {
 
     fetchMenuData();
   }, []);
+
+  const toggleStar = async (foodItem: FoodItem) => {
+    if ( !menuData) return;
+
+    const userDocRef = doc(firestore, 'users', user.uid);
+    try {
+      if (foodItem.starred) {
+        await updateDoc(userDocRef, {
+          favorites: arrayRemove(foodItem.food)
+        });
+      } else {
+        await updateDoc(userDocRef, {
+          favorites: arrayUnion(foodItem.food)
+        });
+      }
+      foodItem.starred = !foodItem.starred;
+      setMenuData({ ...menuData, meals: { ...menuData.meals } });
+    } catch (error) {
+      console.error('Error updating favorites: ', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -99,16 +146,21 @@ const EVKScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Icon name="arrow-back" size={30} color="black" />
-      </TouchableOpacity> */}
       <ScrollView>
         <Text style={styles.title}>Everybody's Kitchen</Text>
+        <Text style={styles.subtitle}>Star an item to be notified when it's being served!</Text>
         {hallData.map((category, index) => (
           <View key={index} style={styles.categoryContainer}>
             <Text style={styles.categoryTitle}>{category.category}</Text>
             {category.foods.map((foodItem, idx) => (
               <View key={idx} style={styles.foodItemContainer}>
+                <TouchableOpacity onPress={() => toggleStar(foodItem)}>
+                  <Ionicons
+                    name={foodItem.starred ? 'star' : 'star-outline'}
+                    size={18}
+                    color={foodItem.starred ? 'gold' : 'gray'}
+                  />
+                </TouchableOpacity>
                 <Text style={styles.foodItem}>{foodItem.food}</Text>
                 <View style={styles.allergenContainer}>
                   {foodItem.allergen_data.map((allergen, allergenIdx) => (
@@ -148,7 +200,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    marginTop: 50,
+    marginTop: 60,
   },
   backButton: {
     position: 'absolute',
@@ -164,12 +216,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 8,
     textAlign: 'center',
   },
+  subtitle:{
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
   categoryContainer: {
-    marginBottom: 24,
-    padding: 16,
+    marginBottom: 20,
+    padding: 12,
     backgroundColor: '#fff',
     borderRadius: 8,
     shadowColor: '#000',
@@ -194,6 +251,8 @@ const styles = StyleSheet.create({
   },
   foodItem: {
     fontSize: 16,
+    flex: 1,
+    marginLeft: 5,
   },
   allergenContainer: {
     flexDirection: 'row',
@@ -205,8 +264,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   allergenKeyContainer: {
-    marginTop: 16,
-    padding: 16,
+    marginTop: 12,
+    padding: 12,
     backgroundColor: '#fff',
     borderRadius: 8,
     shadowColor: '#000',
@@ -228,6 +287,10 @@ const styles = StyleSheet.create({
   allergenKeyText: {
     marginLeft: 8,
     fontSize: 16,
+  },
+  star: {
+    fontSize: 20,
+    color: 'gold',
   },
 });
 
