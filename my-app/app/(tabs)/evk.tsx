@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { auth, firestore } from '../firebaseConfig'; // Adjust the path as needed
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import { auth, firestore } from '../firebaseConfig'; 
 
 interface FoodItem {
   food: string;
   allergen_data: string[];
-  starred?: boolean; // Optional property to indicate if the food is starred
+  starred?: boolean; 
 }
 
 interface Category {
@@ -56,9 +57,24 @@ const allergenColors: { [key in Allergen]: string } = {
   'Wheat / Gluten': 'pink',
 };
 
+const getCurrentMeal = (): number => {
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  if (currentHour >= 0 && currentHour <= 10) {
+    return 0; // Breakfast
+  } else if (currentHour >= 11 && currentHour <= 15) {
+    return 1; // Lunch
+  } else {
+    return 2; // Dinner
+  }
+};
+
 const EVKScreen: React.FC = () => {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectedMeal, setSelectedMeal] = useState<number>(getCurrentMeal());
+
   if (!auth.currentUser) {
     return (
         <Text>Authentication went wrong</Text>
@@ -69,28 +85,24 @@ const EVKScreen: React.FC = () => {
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
-        const today = new Date().toLocaleDateString('en-CA'); // Get current date in YYYY-MM-DD format based on local time
+        const today = new Date().toLocaleDateString('en-CA'); //YYYY-MM-DD format
         const menuDocRef = doc(firestore, 'menus', today);
         const docSnap = await getDoc(menuDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as MenuData;
-          // Fetch user favorites
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            const userData = userDocSnap.exists() ? userDocSnap.data() as UserFavorites : { favorites: [] };
+          const userDocRef = doc(firestore, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          const userData = userDocSnap.exists() ? userDocSnap.data() as UserFavorites : { favorites: [] };
 
-            // Mark items as starred if they are in user favorites
-            Object.values(data.meals).forEach((meal) => {
-              Object.values(meal).forEach((hall) => {
-                (hall as Category[]).forEach((category) => {
-                  category.foods.forEach((food) => {
-                    food.starred = userData.favorites.includes(food.food);
-                  });
+          Object.values(data.meals).forEach((meal) => {
+            Object.values(meal).forEach((hall) => {
+              (hall as Category[]).forEach((category) => {
+                category.foods.forEach((food) => {
+                  food.starred = userData.favorites.includes(food.food);
                 });
               });
             });
-          
-
+          });
           setMenuData(data);
         } else {
           console.log('No such document!');
@@ -106,7 +118,7 @@ const EVKScreen: React.FC = () => {
   }, []);
 
   const toggleStar = async (foodItem: FoodItem) => {
-    if ( !menuData) return;
+    if (!menuData) return;
 
     const userDocRef = doc(firestore, 'users', user.uid);
     try {
@@ -142,13 +154,28 @@ const EVKScreen: React.FC = () => {
     );
   }
 
-  const hallData = menuData.meals.breakfast['Everybody\'s Kitchen']; // Adjust this line to fetch data for the desired hall
+  const mealKeys = ['breakfast', 'lunch', 'dinner'];
+  const selectedMealKey = mealKeys[selectedMeal] as keyof MealMenu;
+  const hallData = menuData.meals[selectedMealKey]['Everybody\'s Kitchen'];
 
   return (
     <View style={styles.container}>
+      
       <ScrollView>
         <Text style={styles.title}>Everybody's Kitchen</Text>
         <Text style={styles.subtitle}>Star an item to be notified when it's being served!</Text>
+        <SegmentedControl
+        values={['Breakfast', 'Lunch', 'Dinner']}
+        selectedIndex={selectedMeal}
+        onChange={(event) => {
+          setSelectedMeal(event.nativeEvent.selectedSegmentIndex);
+        }}
+        style={styles.segmentedControl}
+        tintColor= "#FFD700"
+        backgroundColor="white"
+        fontStyle={{ color: 'gray', fontSize: 14 }}
+        activeFontStyle={{ color: 'white', fontSize: 14 }}
+      />
         {hallData.map((category, index) => (
           <View key={index} style={styles.categoryContainer}>
             <Text style={styles.categoryTitle}>{category.category}</Text>
@@ -200,7 +227,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    marginTop: 60,
+    marginTop: 38,
   },
   backButton: {
     position: 'absolute',
@@ -217,6 +244,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    marginTop: 12,
     textAlign: 'center',
   },
   subtitle:{
@@ -247,7 +275,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   foodItem: {
     fontSize: 16,
@@ -291,6 +318,10 @@ const styles = StyleSheet.create({
   star: {
     fontSize: 20,
     color: 'gold',
+  },
+  segmentedControl: {
+    margin: 10,
+    borderWidth: 0,
   },
 });
 
