@@ -2,8 +2,8 @@ name: Daily Menu Scrape
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight UTC
-  workflow_dispatch:  # Allows manual triggering of the workflow
+    - cron: '1 8 * * *'  # Runs every day at 8:01am UTC
+  workflow_dispatch: 
 
 jobs:
   scrape:
