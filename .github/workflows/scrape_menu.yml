@@ -28,7 +28,7 @@ jobs:
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: |
           mkdir -p ./secrets
-          echo "$FIREBASE_CREDENTIALS" > ./secrets/uscdining-3f162-8f7eb34df03b.json
+          echo "$FIREBASE_CREDENTIALS" > ./secrets/uscdining-3f162-6cbe1b3d6a1a.json
 
 
       - name: Run scrape script

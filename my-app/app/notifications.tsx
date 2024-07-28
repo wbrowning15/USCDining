@@ -7,29 +7,32 @@ export const useNotifications = () => {
 
   useEffect(() => {
     const registerForPushNotificationsAsync = async () => {
-      let token;
-      if (Constants.isDevice) {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-        if (existingStatus !== 'granted') {
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
-        }
-        if (finalStatus !== 'granted') {
-          alert('Failed to get push token for push notification!');
-          return;
-        }
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-        if (projectId) {
-          token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-          console.log("token set: ", token);
-          setExpoPushToken(token);
+      console.log("Initializing push notifications...");
 
-        } else {
-          console.warn('Project ID is missing');
+      let token;
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+      if (projectId) {
+        try {
+          token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+          console.log("Push token set: ", token);
+          setExpoPushToken(token);
+        } catch (error) {
+          console.error("Error getting push token: ", error);
+          alert('Failed to get push token. Push notifications may not work on simulators.');
         }
       } else {
-        alert('Must use physical device for Push Notifications');
+        console.warn('Project ID is missing');
       }
     };
 
