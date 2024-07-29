@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@react-native-firebase/messaging": "^20.3.0"
+    "@react-native-firebase/messaging": "^20.3.0",
+    "dotenv": "^16.4.5"
   }
 }

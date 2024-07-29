@@ -3,9 +3,10 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import 'dotenv/config';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBGfp4QZD1n-ONgNM88PVddtbu4s4gKnss",
+    apiKey: process.env.FIREBASE_API_KEY,
     authDomain: "uscdining-3f162.firebaseapp.com",
     databaseURL: "https://uscdining-3f162-default-rtdb.firebaseio.com",
     projectId: "uscdining-3f162",
